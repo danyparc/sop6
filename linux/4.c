@@ -3,18 +3,82 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-//#define VALOR 1
 
 double determinant(double[10][10],double);
 void cofactor(double[10][10],double);
 void transpose(double[10][10],double[10][10],double);
 
+int i,j,k, num=1;
+double mtx_a[10][10],mtx_b[10][10],mtx_multi[10][10],mtx_suma[10][10];
+int desc_a[2], desc_b[2], desc_Rsuma[2], desc_Rmulti[2], desc_nieto_a[2],desc_nieto_b[2];
+int buffer[15][15], buffer2[15][15], buffer3[15][15],buffer4[15][15];
+
 int main(void){
-  //int desc_arch[2];
-  int i,j,k, num=1;
-  double mtx_a[10][10],mtx_b[10][10],mtx_multi[10][10],mtx_suma[10][10];
-  //int desc_arch[2], desc_arch2[2], desc_arch3[2], desc_archNieto[2], desc_arch4[2];
-  //int buffer[15][15], buffer2[15][15], buffer3[15][15],buffer4[15][15];
+  //int desc[2];
+
+  if(pipe(desc_a) != 0)
+    exit(1);
+
+  if(pipe(desc_b) != 0)
+    exit(1);
+
+  if(pipe(desc_Rsuma) != 0)
+    exit(1);
+
+  if(pipe(desc_Rmulti) != 0)
+    exit(1);
+
+	if(pipe(desc_nieto_a) != 0)
+    exit(1);
+
+  if(pipe(desc_nieto_b) != 0)
+    exit(1);
+
+  if (fork()==0) {//Proceso hijo
+    if (fork()==0) {//Proceso Nieto
+      printf ("Proceso nieto pid: %d\n", getpid());
+      //Leemos matrices
+      read (desc_nieto_a[0], mtx_a, 100*sizeof(double));
+      read (desc_nieto_b[0], mtx_b, 100*sizeof(double));
+      //SUMA
+      for(i=0;i<10;i++){
+        for(j=0;j<10;j++)
+        mtx_suma[i][j]=mtx_a[i][j]+mtx_b[i][j];
+      }
+      //Pasamos resultado de la suma
+      write(desc_Rsuma[1],mtx_suma,100*sizeof(double));
+      return EXIT_SUCCESS;
+    }
+    printf ("Proceso hijo pid: %d\n", getpid());
+    //leemos matrices
+    close(desc_a[1]);
+    close(desc_b[1]);
+    read (desc_a[0], mtx_a, 100*sizeof(double));
+    read (desc_a[0], mtx_b, 100*sizeof(double));
+    printf("\nhey");
+    //MULTIPLICACIÓN
+    for (i=0;i<10;i++){
+     for (j=0;j<10;j++){
+       mtx_multi[i][j]=0;
+       for (k=1;k<=10;k++)
+         mtx_multi[i][j]=mtx_multi[i][j]+mtx_a[i][k]*mtx_b[k][j];
+      }
+    }
+    for ( i = 0; i < 10; i++) {
+      for ( k = 0; k < 10; k++)
+        printf("%.1lf ", mtx_multi[i][k]);
+    }
+
+    //Pasamos mismas matrices al nieto
+    close(desc_nieto_a[0]);
+    close(desc_nieto_b[0]);
+    write(desc_nieto_a[1], mtx_a, 100*sizeof(double));
+    write(desc_nieto_b[1], mtx_b, 100*sizeof(double));
+    //Pasamos resultado de la multiplicacion
+    write(desc_Rmulti[1],mtx_multi,100*sizeof(double));
+    return EXIT_SUCCESS;
+  }
+
 
   //Llenamos las matrices
   for ( i = 0; i < 10; i++) {
@@ -24,22 +88,11 @@ int main(void){
     }
   }
 
-/*
-  if(pipe(desc_arch) != 0)
-    exit(1);
-
-  if(pipe(desc_arch2) != 0)
-    exit(1);
-
-  if(pipe(desc_arch3) != 0)
-    exit(1);
-
-  if(pipe(desc_archNieto) != 0)
-    exit(1);
-
-	if(pipe(desc_arch4) != 0)
-    	exit(1);
-*/
+  //Pasamos las matrices al hijo
+  close(desc_a[0]);
+  write(desc_a[1], mtx_a, 100*sizeof(double));
+  close(desc_b[0]);
+  write(desc_b[1], mtx_b, 100*sizeof(double));
 
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
@@ -54,16 +107,8 @@ int main(void){
     printf("\n");
   }
 
-  //MULTIPLICACIÓN
-
-  for (i=0;i<10;i++){
-   for (j=0;j<10;j++){
-     mtx_multi[i][j]=0;
-     for (k=1;k<=10;k++)
-       mtx_multi[i][j]=mtx_multi[i][j]+mtx_a[i][k]*mtx_b[k][j];
-    }
-  }
-
+  close(desc_Rmulti[1]);
+  read(desc_Rmulti[0],mtx_multi,100*sizeof(double));
   printf("\n\tRESULTADO MULTIPLICACIÓN\n\n");
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
@@ -72,13 +117,8 @@ int main(void){
     printf("\n");
   }
 
-  //SUMA
-  for(i=0;i<10;i++){
-    for(j=0;j<10;j++)
-      mtx_suma[i][j]=mtx_a[i][j]+mtx_b[i][j];
-    /*Se guarda el resultado de la suma en la matriz A*/
-  }
-
+  close(desc_Rsuma[1]);
+  read(desc_Rsuma[0],mtx_suma,100*sizeof(double));
   printf("\n\tRESULTADO Suma\n\n");
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
