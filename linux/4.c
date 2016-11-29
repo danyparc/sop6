@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 //#define VALOR 1
 
@@ -12,6 +13,9 @@ int main(void){
   //int desc_arch[2];
   int i,j,k, num=1;
   double mtx_a[10][10],mtx_b[10][10],mtx_multi[10][10],mtx_suma[10][10];
+  //int desc_arch[2], desc_arch2[2], desc_arch3[2], desc_archNieto[2], desc_arch4[2];
+  //int buffer[15][15], buffer2[15][15], buffer3[15][15],buffer4[15][15];
+
   //Llenamos las matrices
   for ( i = 0; i < 10; i++) {
     for ( k = 0; k < 10; k++) {
@@ -20,16 +24,33 @@ int main(void){
     }
   }
 
+/*
+  if(pipe(desc_arch) != 0)
+    exit(1);
+
+  if(pipe(desc_arch2) != 0)
+    exit(1);
+
+  if(pipe(desc_arch3) != 0)
+    exit(1);
+
+  if(pipe(desc_archNieto) != 0)
+    exit(1);
+
+	if(pipe(desc_arch4) != 0)
+    	exit(1);
+*/
+
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
     for ( k = 0; k < 10; k++)
-      printf("%lf ", mtx_a[i][k]);
+      printf("%.1lf ", mtx_a[i][k]);
     printf("\n");
   }
   printf("\n");
   for ( i = 0; i < 10; i++) {
     for ( k = 0; k < 10; k++)
-      printf("%lf ", mtx_b[i][k]);
+      printf("%.1lf ", mtx_b[i][k]);
     printf("\n");
   }
 
@@ -47,7 +68,7 @@ int main(void){
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
     for ( k = 0; k < 10; k++)
-      printf("%lf ", mtx_multi[i][k]);
+      printf("%.1lf ", mtx_multi[i][k]);
     printf("\n");
   }
 
@@ -62,7 +83,7 @@ int main(void){
   //Imprimimos matrices
   for ( i = 0; i < 10; i++) {
     for ( k = 0; k < 10; k++)
-      printf("%lf ", mtx_suma[i][k]);
+      printf("%.1lf ", mtx_suma[i][k]);
     printf("\n");
   }
 
@@ -76,11 +97,16 @@ int main(void){
   if (d==0) {
     printf("Determinante multi: %f\n", d);
     printf("No existe la inversa para esta matriz\n");
+  }else{
+    cofactor(mtx_multi,10);
   }
+
   d=determinant(mtx_suma, 10);
   if (d==0) {
     printf("Determinante suma: %f\n", d);
     printf("No existe la inversa para esta matriz\n");
+  }else{
+    cofactor(mtx_suma,10);
   }
 
 
@@ -165,10 +191,10 @@ void transpose(double matrix[10][10],double matrix_cofactor[10][10],double size)
       m_inverse[i][j]=m_transpose[i][j] / d;
     }
   }
-  printf("\n\n\t* * * * * * * * * * * * * * * * * * * * * * * \n\n\tThe inverse of matrix is : \n\n");
+  printf("\n\n\t* * * * * * * * * * * * * * * * * * * * * * * \n\n\tLa Matriz Inversa es : \n\n");
   for (i=0;i<size;i++){
     for (j=0;j<size;j++){
-      printf("\t%3.2f",m_inverse[i][j]);
+      printf("%.2lf",m_inverse[i][j]);
     }
     printf("\n\n");
   }
