@@ -22,20 +22,10 @@ int main(void){
   if(pipe(desc_b) != 0)
     exit(1);
 
-  if(pipe(desc_Rsuma) != 0)
-    exit(1);
-
-  if(pipe(desc_Rmulti) != 0)
-    exit(1);
-
-	if(pipe(desc_nieto_a) != 0)
-    exit(1);
-
-  if(pipe(desc_nieto_b) != 0)
-    exit(1);
-
   if (fork()==0) {//Proceso hijo
     if (fork()==0) {//Proceso Nieto
+      if(pipe(desc_Rsuma) != 0)
+        exit(1);
       printf ("Proceso nieto pid: %d\n", getpid());
       //Leemos matrices
       read (desc_nieto_a[0], mtx_a, 100*sizeof(double));
@@ -49,13 +39,31 @@ int main(void){
       write(desc_Rsuma[1],mtx_suma,100*sizeof(double));
       return EXIT_SUCCESS;
     }
+    if(pipe(desc_Rmulti) != 0)
+      exit(1);
+
+    if(pipe(desc_nieto_a) != 0)
+      exit(1);
+
+    if(pipe(desc_nieto_b) != 0)
+      exit(1);
+
+    if(pipe(desc_Rsuma) != 0)
+      exit(1);
+
     printf ("Proceso hijo pid: %d\n", getpid());
     //leemos matrices
     close(desc_a[1]);
     close(desc_b[1]);
     read (desc_a[0], mtx_a, 100*sizeof(double));
     read (desc_a[0], mtx_b, 100*sizeof(double));
-    printf("\nhey");
+    //Imprimimos matrices
+    for ( i = 0; i < 10; i++) {
+      for ( k = 0; k < 10; k++)
+        printf("%.1lf h", mtx_a[i][k]);
+      printf("\n");
+    }
+    //printf("\nhey");
     //MULTIPLICACIÓN
     for (i=0;i<10;i++){
      for (j=0;j<10;j++){
